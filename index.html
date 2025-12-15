@@ -1,40 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Dharsh Chat App</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    body { font-family: Arial; background: #f1f3f7; padding: 20px; }
-    .box {
-      max-width: 500px; margin: auto; background: white;
-      padding: 20px; border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    #messages {
-      height: 350px; overflow-y: auto; border: 1px solid #ccc;
-      padding: 10px; border-radius: 6px; background: #fafafa;
-    }
-    .msg { background: #e8f0fe; padding: 8px; margin-bottom: 10px; border-radius: 5px; }
-    input, button { padding: 10px; width: 100%; margin-top: 10px; }
-    button { background: #0066ff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    body { font-family: Arial; background:#f2f2f2; }
+    #chat { width: 400px; margin: 50px auto; background: white; padding: 20px; border-radius: 8px; }
+    #messages { height: 200px; overflow-y: auto; border:1px solid #ccc; margin-bottom:10px; padding:5px; }
+    input, button { width:100%; padding:8px; margin-top:5px; }
+    button { background:#007bff; color:white; border:none; cursor:pointer; }
   </style>
 </head>
 <body>
 
-<div class="box">
-  <h2>💬 Dharsh Chat App</h2>
-  <input id="name" placeholder="Enter your name" />
+<div id="chat">
+  <h2>Dharsh Chat App</h2>
   <div id="messages"></div>
+  <input id="name" placeholder="Enter your name" />
   <input id="text" placeholder="Type your message..." />
   <button onclick="sendMessage()">Send</button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+<!-- 🔥 Firebase v8 COMPAT SDKs (NO import, NO module) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-  const firebaseConfig = {
+  // 🔹 Your Firebase config
+  var firebaseConfig = {
     apiKey: "AIzaSyALPAc3KbE2YXziZ0fi1CEC9p2Skv2mZb0",
     authDomain: "chat-app-bf824.firebaseapp.com",
     projectId: "chat-app-bf824",
@@ -43,30 +35,34 @@
     appId: "1:361342519986:web:50147ee6e5ae08158857ab"
   };
 
+  // 🔹 Initialize Firebase
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  var db = firebase.firestore();
 
-  const msgBox = document.getElementById("messages");
+  var messagesDiv = document.getElementById("messages");
 
-  db.collection("messages").orderBy("time").onSnapshot(snapshot => {
-    msgBox.innerHTML = "";
-    snapshot.forEach(doc => {
-      const d = doc.data();
-      msgBox.innerHTML += `<div class="msg"><b>${d.name}:</b> ${d.text}</div>`;
+  // 🔹 Load messages in real time
+  db.collection("messages").orderBy("time")
+    .onSnapshot(function(snapshot) {
+      messagesDiv.innerHTML = "";
+      snapshot.forEach(function(doc) {
+        var d = doc.data();
+        messagesDiv.innerHTML += "<p><b>" + d.name + ":</b> " + d.text + "</p>";
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     });
-    msgBox.scrollTop = msgBox.scrollHeight;
-  });
 
+  // 🔹 Send message function
   function sendMessage() {
-    const name = document.getElementById("name").value || "Anonymous";
-    const text = document.getElementById("text").value;
+    var name = document.getElementById("name").value || "Anonymous";
+    var text = document.getElementById("text").value;
 
-    if (!text.trim()) return;
+    if (text.trim() === "") return;
 
     db.collection("messages").add({
-      name,
-      text,
-      time: Date.now()
+      name: name,
+      text: text,
+      time: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     document.getElementById("text").value = "";
